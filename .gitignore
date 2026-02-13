@@ -214,5 +214,6 @@ htmlcov/
 .pytest_cache/
 
 .replit
-.replit-nix
-.uv.lock
+replit-nix
+uv.lock
+pyproject.toml
