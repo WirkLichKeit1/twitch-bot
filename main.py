@@ -15,14 +15,9 @@ logger = logging.getLogger(__name__)
 
 def run_bot():
     """Executa o bot em sua própria thread com seu próprio event loop"""
-    # Cria um novo event loop para esta thread
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
 
-    try:
-        logger.info("🤖 Iniciando bot da Twitch...")
-
-        # Importa e cria o bot AQUI, dentro do loop correto
+    async def start_bot():
+        """Função assíncrona para iniciar o bot"""
         from app.bot.bot import TwitchBot
         from app.bot.commands import register_commands
 
@@ -32,7 +27,17 @@ def run_bot():
         register_commands(bot)
 
         # Inicia o bot
-        loop.run_until_complete(bot.start())
+        await bot.start()
+
+    try:
+        logger.info("🤖 Iniciando bot da Twitch...")
+
+        # Cria um novo event loop para esta thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        # Roda o bot
+        loop.run_until_complete(start_bot())
 
     except Exception as e:
         logger.error(f"❌ Erro ao iniciar bot: {e}")
