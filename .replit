@@ -28,6 +28,19 @@ author = 48223061
 task = "shell.exec"
 args = "python main.py"
 
+[[workflows.workflow]]
+name = "db"
+mode = "sequential"
+author = 48223061
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python setup.py"
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
 [[ports]]
 localPort = 8080
 externalPort = 80
