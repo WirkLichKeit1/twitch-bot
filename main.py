@@ -3,7 +3,6 @@ import uvicorn
 import logging
 import threading
 from app.core.config import settings
-from app.api.main import app
 
 # Configura logging
 logging.basicConfig(
@@ -14,60 +13,80 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def run_bot_in_thread():
-    """Executa o bot em seu próprio event loop em uma thread separada"""
-    # Importa o bot DENTRO da thread para criar no loop correto
-    from app.bot.bot import bot
+def run_bot():
+    """Executa o bot em sua própria thread com seu próprio event loop"""
+    # Cria um novo event loop para esta thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     try:
-        logger.info("Iniciando bot da Twitch...")
-        # Cria um novo event loop para esta thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        logger.info("🤖 Iniciando bot da Twitch...")
 
-        # Roda o bot neste loop
+        # Importa e cria o bot AQUI, dentro do loop correto
+        from app.bot.bot import TwitchBot
+        from app.bot.commands import register_commands
+
+        bot = TwitchBot()
+
+        # Registra os comandos
+        register_commands(bot)
+
+        # Inicia o bot
         loop.run_until_complete(bot.start())
+
     except Exception as e:
-        logger.error(f"Erro ao iniciar bot: {e}")
+        logger.error(f"❌ Erro ao iniciar bot: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        loop.close()
 
 
-async def run_api():
+def run_api():
     """Executa a API FastAPI"""
     try:
-        logger.info("Iniciando API FastAPI...")
-        config = uvicorn.Config(
+        logger.info("🚀 Iniciando API FastAPI...")
+        from app.api.main import app
+
+        uvicorn.run(
             app,
             host=settings.api_host,
             port=settings.api_port,
             log_level="info" if settings.enable_debug else "warning"
         )
-        server = uvicorn.Server(config)
-        await server.serve()
     except Exception as e:
-        logger.error(f"Erro ao iniciar API: {e}")
+        logger.error(f"❌ Erro ao iniciar API: {e}")
+        import traceback
+        traceback.print_exc()
 
 
-async def main():
-    """Executa bot e API simultaneamente"""
-    logger.info("=== Iniciando Twitch Bot Backend ===")
-    logger.info(f"Canal: {settings.twitch_channel}")
-    logger.info(f"Prefix: {settings.command_prefix}")
-    logger.info(f"API: http://{settings.api_host}:{settings.api_port}")
+def main():
+    """Executa bot e API em paralelo"""
+    logger.info("=" * 50)
+    logger.info("🎮 Iniciando Twitch Bot Backend")
+    logger.info("=" * 50)
+    logger.info(f"📺 Canal: {settings.twitch_channel}")
+    logger.info(f"⚡ Prefix: {settings.command_prefix}")
+    logger.info(f"🌐 API: http://{settings.api_host}:{settings.api_port}")
+    logger.info(f"📚 Docs: http://{settings.api_host}:{settings.api_port}/docs")
+    logger.info("=" * 50)
 
     # Inicia o bot em uma thread separada
-    bot_thread = threading.Thread(target=run_bot_in_thread, daemon=True)
+    bot_thread = threading.Thread(target=run_bot, name="TwitchBot", daemon=True)
     bot_thread.start()
 
-    # Roda a API no loop principal
-    await run_api()
+    # Roda a API na thread principal
+    run_api()
 
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
-        logger.info("\n=== Encerrando aplicação ===")
+        logger.info("\n" + "=" * 50)
+        logger.info("👋 Encerrando aplicação...")
+        logger.info("=" * 50)
     except Exception as e:
-        logger.error(f"Erro fatal: {e}")
+        logger.error(f"💥 Erro fatal: {e}")
+        import traceback
+        traceback.print_exc()

@@ -140,18 +140,3 @@ class TwitchBot(commands.Bot):
     def register_command_handler(self, command_name: str, handler: Callable):
         """Registra um handler customizado para um comando"""
         self.custom_command_handlers[command_name] = handler
-
-
-# Função para obter a instância do bot (criada sob demanda)
-_bot_instance = None
-
-def get_bot():
-    """Retorna a instância do bot (singleton)"""
-    global _bot_instance
-    if _bot_instance is None:
-        _bot_instance = TwitchBot()
-    return _bot_instance
-
-
-# Mantém compatibilidade com imports antigos
-bot = get_bot()

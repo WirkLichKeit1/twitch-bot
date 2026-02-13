@@ -1,4 +1,4 @@
-from app.bot.bot import bot
-from app.bot import commands
+from app.bot.bot import TwitchBot
+from app.bot.commands import register_commands
 
-__all__ = ["bot"]
+__all__ = ["TwitchBot", "register_commands"]
