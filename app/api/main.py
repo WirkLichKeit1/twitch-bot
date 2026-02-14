@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db
-from app.api.routes import users, commands, auth
+from app.api.routes import users, commands
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,8 +26,6 @@ app.add_middleware(
 # Registra rotas
 app.include_router(users.router)
 app.include_router(commands.router)
-app.include_router(auth.router)
-
 
 @app.on_event("startup")
 async def startup_event():

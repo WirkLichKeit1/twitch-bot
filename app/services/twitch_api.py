@@ -141,7 +141,7 @@ class TwitchAPIService:
 
     async def search_categories(self, query: str) -> List[Dict[str, Any]]:
         """Busca categorias/jogos pelo nome (usa app token)"""
-        data = await self._make_request("search/categories", params={"query": query})
+        data = await self._make_request("search/categories", params={"query": query}, use_streamer_token=True)
         return data.get("data", [])
 
 
