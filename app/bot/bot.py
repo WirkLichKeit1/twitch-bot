@@ -21,14 +21,9 @@ class TwitchBot(commands.Bot):
             initial_channels=[settings.twitch_channel]
         )
 
-        # Controle de cooldowns
         self.global_cooldowns: Dict[str, datetime] = {}
         self.user_cooldowns: Dict[str, Dict[str, datetime]] = {}
-
-        # Cache do broadcaster ID
         self.broadcaster_id: Optional[str] = None
-
-        # Handlers customizados
         self.custom_command_handlers: Dict[str, Callable] = {}
 
     async def event_ready(self):
@@ -36,7 +31,6 @@ class TwitchBot(commands.Bot):
         logger.info(f'Bot conectado como | {self.nick}')
         logger.info(f'User ID: {self.user_id}')
 
-        # Busca o broadcaster ID
         user_data = await twitch_api.get_user(settings.twitch_channel)
         if user_data:
             self.broadcaster_id = user_data['id']
@@ -44,27 +38,21 @@ class TwitchBot(commands.Bot):
 
     async def event_message(self, message):
         """Evento quando uma mensagem é enviada no chat"""
-        # Ignora mensagens do próprio bot
         if message.echo:
             return
 
-        # Atualiza informações do usuário no banco
         await self.update_user_stats(message)
-
-        # Processa comandos
         await self.handle_commands(message)
 
     async def update_user_stats(self, message):
         """Atualiza estatísticas do usuário no banco"""
         async with AsyncSessionLocal() as session:
-            # Busca ou cria usuário
             result = await session.execute(
                 select(User).where(User.twitch_id == str(message.author.id))
             )
             user = result.scalar_one_or_none()
 
             if not user:
-                # Cria novo usuário
                 user = User(
                     twitch_id=str(message.author.id),
                     username=message.author.name,
@@ -74,7 +62,6 @@ class TwitchBot(commands.Bot):
                     is_broadcaster=message.author.name.lower() == settings.twitch_channel.lower()
                 )
 
-                # Define role
                 if user.is_broadcaster:
                     user.role = UserRole.BROADCASTER
                 elif user.is_moderator:
@@ -84,9 +71,29 @@ class TwitchBot(commands.Bot):
                 else:
                     user.role = UserRole.VIEWER
 
+                if self.broadcaster_id:
+                    try:
+                        follower_info = await twitch_api.get_follower_info(
+                            self.broadcaster_id,
+                            str(message.author.id)
+                        )
+                        if follower_info:
+                            user.followed_at = datetime.fromisoformat(
+                                follower_info.get('followed_at').replace('Z', '+00:00')
+                            ).replace(tzinfo=None)
+
+                        if message.author.is_subscriber:
+                            sub_info = await twitch_api.get_subscriber_info(
+                                self.broadcaster_id,
+                                str(message.author.id)
+                            )
+                            if sub_info:
+                                user.subscription_tier = sub_info.get('tier', '1000')
+                    except Exception as e:
+                        logger.warning(f"Erro ao buscar dados da API: {e}")
+
                 session.add(user)
             else:
-                # Atualiza stats
                 user.last_seen = datetime.utcnow()
                 user.message_count += 1
                 user.is_subscriber = message.author.is_subscriber
@@ -117,18 +124,15 @@ class TwitchBot(commands.Bot):
         """Verifica se o comando está em cooldown"""
         now = datetime.utcnow()
 
-        # Cooldown global
         if command_name in self.global_cooldowns:
             if now < self.global_cooldowns[command_name]:
                 return False
 
-        # Cooldown por usuário
         if user_id in self.user_cooldowns:
             if command_name in self.user_cooldowns[user_id]:
                 if now < self.user_cooldowns[user_id][command_name]:
                     return False
 
-        # Atualiza cooldowns
         self.global_cooldowns[command_name] = now + timedelta(seconds=global_cd)
 
         if user_id not in self.user_cooldowns:

@@ -33,6 +33,14 @@ def register_commands(bot):
             meses = delta.days // 30
             tempo_sub = f"{meses} meses (Tier {user.subscription_tier or '1'})"
 
+        # Calcula horas assistidas aproximadas
+        if user.first_seen and user.last_seen:
+            delta_tempo = user.last_seen - user.first_seen
+            horas_totais = int(delta_tempo.total_seconds() / 3600)
+            horas_assistidas = max(1, int(horas_totais * 0.3))
+        else:
+            horas_assistidas = 0
+
         # Status
         status = []
         if user.is_broadcaster:
@@ -50,8 +58,7 @@ def register_commands(bot):
             f"@{ctx.author.name} | {status_str} | "
             f"Seguindo: {tempo_seguindo} | "
             f"Sub: {tempo_sub} | "
-            f"Mensagens: {user.message_count} | "
-            f"Comandos: {user.command_count}"
+            f"~{horas_assistidas}h assistidas"
         )
 
 
@@ -90,7 +97,6 @@ def register_commands(bot):
     @bot.command(name='settitulo')
     async def set_titulo_command(ctx: commands.Context, *, novo_titulo: str):
         """[MOD] Altera o título da live"""
-        # Verifica se é mod ou broadcaster
         if not (ctx.author.is_mod or ctx.author.name.lower() == bot._initial_channels[0].lower()):
             await ctx.send(f"@{ctx.author.name}, você precisa ser moderador para usar este comando!")
             return
@@ -114,7 +120,6 @@ def register_commands(bot):
     @bot.command(name='setjogo')
     async def set_jogo_command(ctx: commands.Context, *, nome_jogo: str):
         """[MOD] Altera o jogo/categoria da live"""
-        # Verifica se é mod ou broadcaster
         if not (ctx.author.is_mod or ctx.author.name.lower() == bot._initial_channels[0].lower()):
             await ctx.send(f"@{ctx.author.name}, você precisa ser moderador para usar este comando!")
             return
@@ -123,8 +128,6 @@ def register_commands(bot):
             await ctx.send("Erro ao identificar o canal!")
             return
 
-        # Nota: A API da Twitch requer o game_id, não o nome
-        # Para implementação completa, seria necessário buscar o game_id primeiro
         await ctx.send(f"⚠️ Para alterar o jogo, use o painel da Twitch por enquanto. Feature em desenvolvimento!")
 
 

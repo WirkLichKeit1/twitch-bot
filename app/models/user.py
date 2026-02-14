@@ -28,6 +28,7 @@ class User(Base):
     last_seen = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     message_count = Column(Integer, default=0)
     command_count = Column(Integer, default=0)
+    watch_hours = Column(Integer, default=0)  # Horas assistidas (aproximado)
 
     subscribed_at = Column(DateTime, nullable=True)
     subscription_tier = Column(String, nullable=True)

@@ -70,12 +70,10 @@ async def seed_builtin_commands():
         }
     ]
 
-    # Inicializa banco
     await init_db()
 
     async with AsyncSessionLocal() as session:
         for cmd_data in builtin_commands:
-            # Verifica se já existe
             result = await session.execute(
                 select(Command).where(Command.name == cmd_data["name"])
             )

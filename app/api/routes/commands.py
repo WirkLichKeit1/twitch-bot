@@ -66,14 +66,12 @@ async def create_command(
     db: AsyncSession = Depends(get_db)
 ):
     """Cria um novo comando customizado"""
-    # Verifica se já existe
     existing = await db.execute(
         select(Command).where(Command.name == command.name.lower())
     )
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Comando já existe")
 
-    # Cria o comando
     new_command = Command(
         name=command.name.lower(),
         response=command.response,
@@ -120,11 +118,9 @@ async def update_command(
     if not command:
         raise HTTPException(status_code=404, detail="Comando não encontrado")
 
-    # Não permite editar comandos built-in
     if command.command_type == CommandType.BUILTIN:
         raise HTTPException(status_code=403, detail="Não é possível editar comandos nativos")
 
-    # Atualiza campos
     update_data = updates.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(command, field, value)
@@ -148,7 +144,6 @@ async def delete_command(command_name: str, db: AsyncSession = Depends(get_db)):
     if not command:
         raise HTTPException(status_code=404, detail="Comando não encontrado")
 
-    # Não permite deletar comandos built-in
     if command.command_type == CommandType.BUILTIN:
         raise HTTPException(status_code=403, detail="Não é possível deletar comandos nativos")
 

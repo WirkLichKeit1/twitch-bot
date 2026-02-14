@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     twitch_bot_token: str
     twitch_channel: str
 
+    twitch_streamer_token: str
+
     twitch_client_id: str
     twitch_client_secret: str
 

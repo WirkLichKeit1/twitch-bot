@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     is_moderator: bool
     message_count: int
     command_count: int
+    watch_hours: int
     first_seen: datetime
     last_seen: datetime
 
@@ -54,16 +55,10 @@ async def get_users(
 @router.get("/stats", response_model=UserStatsResponse)
 async def get_user_stats(db: AsyncSession = Depends(get_db)):
     """Retorna estatísticas gerais dos usuários"""
-    # Total de usuários
     total_users = await db.scalar(select(func.count(User.id)))
-
-    # Total de mensagens
     total_messages = await db.scalar(select(func.sum(User.message_count))) or 0
-
-    # Total de comandos
     total_commands = await db.scalar(select(func.sum(User.command_count))) or 0
 
-    # Usuários ativos hoje
     today = datetime.utcnow().date()
     active_result = await db.execute(
         select(func.count(User.id))

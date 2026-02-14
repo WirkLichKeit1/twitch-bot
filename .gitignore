@@ -217,3 +217,7 @@ htmlcov/
 replit-nix
 uv.lock
 pyproject.toml
+
+quick_test.py
+test_tokens.py
+debug.py
