@@ -24,6 +24,7 @@ def register_commands(bot):
         if user.followed_at:
             delta = datetime.utcnow() - user.followed_at
             dias = delta.days
+            
             tempo_seguindo = f"{dias} dias"
 
         # Calcula tempo de inscrição
@@ -44,19 +45,19 @@ def register_commands(bot):
         # Status
         status = []
         if user.is_broadcaster:
-            status.append("🎙️ Broadcaster")
+            status.append("Pai")
         if user.is_moderator:
-            status.append("🛡️ Moderador")
+            status.append("Mod")
         if user.is_subscriber:
-            status.append("⭐ Inscrito")
+            status.append("Sub")
         if user.is_vip:
-            status.append("💎 VIP")
+            status.append("VIP")
 
-        status_str = " | ".join(status) if status else "👤 Viewer"
+        status_str = " | ".join(status) if status else "Viewer"
 
         await ctx.send(
-            f"@{ctx.author.name} | {status_str} | "
-            f"Seguindo: {tempo_seguindo} | "
+            f"@{ctx.author.name} | ({status_str}) | "
+            f"Segue há: {tempo_seguindo} | "
             f"Sub: {tempo_sub} | "
             f"~{horas_assistidas}h assistidas"
         )
@@ -73,7 +74,7 @@ def register_commands(bot):
 
         if channel_info:
             titulo = channel_info.get('title', 'Sem título')
-            await ctx.send(f"📺 Título atual: {titulo}")
+            await ctx.send(f"Título atual: {titulo}")
         else:
             await ctx.send("Não foi possível buscar o título!")
 
@@ -89,7 +90,7 @@ def register_commands(bot):
 
         if channel_info:
             jogo = channel_info.get('game_name', 'Nenhum jogo definido')
-            await ctx.send(f"🎮 Jogando: {jogo}")
+            await ctx.send(f"Jogando: {jogo}")
         else:
             await ctx.send("Não foi possível buscar o jogo!")
 
@@ -111,10 +112,10 @@ def register_commands(bot):
         )
 
         if success:
-            await ctx.send(f"✅ Título alterado para: {novo_titulo}")
+            await ctx.send(f"Título alterado para: {novo_titulo}")
             logger.info(f"Título alterado por {ctx.author.name}: {novo_titulo}")
         else:
-            await ctx.send("❌ Erro ao alterar o título!")
+            await ctx.send("Erro ao alterar o título!")
 
 
     @bot.command(name='setjogo')
@@ -128,7 +129,7 @@ def register_commands(bot):
             await ctx.send("Erro ao identificar o canal!")
             return
 
-        await ctx.send(f"⚠️ Para alterar o jogo, use o painel da Twitch por enquanto. Feature em desenvolvimento!")
+        await ctx.send(f"Para alterar o jogo, use o painel da Twitch por enquanto. Feature em desenvolvimento!")
 
 
     @bot.command(name='comandos')
@@ -160,7 +161,7 @@ def register_commands(bot):
         stream = await twitch_api.get_stream(bot._initial_channels[0])
 
         if not stream:
-            await ctx.send("📴 O canal não está ao vivo no momento!")
+            await ctx.send("O canal não está ao vivo no momento!")
             return
 
         started_at = datetime.fromisoformat(stream['started_at'].replace('Z', '+00:00'))
@@ -169,7 +170,7 @@ def register_commands(bot):
         horas = uptime.seconds // 3600
         minutos = (uptime.seconds % 3600) // 60
 
-        await ctx.send(f"🔴 Live online há: {horas}h {minutos}min | Viewers: {stream.get('viewer_count', 0)}")
+        await ctx.send(f"Live online há: {horas}h {minutos}min | Viewers: {stream.get('viewer_count', 0)}")
 
 
-    logger.info("✅ Comandos built-in registrados!")
+    logger.info("Comandos built-in registrados!")
